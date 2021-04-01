@@ -36,6 +36,8 @@ import org.eclipse.jdt.annotation.Nullable;
 
 import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import ch.njol.skript.Skript;
 import ch.njol.skript.util.Version;
@@ -50,7 +52,7 @@ public class BukkitUnsafe {
 	 * Bukkit's UnsafeValues allows us to do stuff that would otherwise
 	 * require NMS. It has existed for a long time, too, so 1.9 support is
 	 * not particularly hard to achieve.
-	 * 
+	 *
 	 * UnsafeValues' existence and behavior is not guaranteed across future versions.
 	 */
 	@Nullable
@@ -104,7 +106,7 @@ public class BukkitUnsafe {
 			MethodHandle mh;
 			try {
 				mh = MethodHandles.lookup().findVirtual(UnsafeValues.class,
-						"getMaterialFromInternalName", MethodType.methodType(Material.class, String.class));
+					"getMaterialFromInternalName", MethodType.methodType(Material.class, String.class));
 			} catch (NoSuchMethodException | IllegalAccessException e) {
 				mh = null;
 			}
@@ -170,8 +172,27 @@ public class BukkitUnsafe {
 			}
 			String data = new String(ByteStreams.toByteArray(is), StandardCharsets.UTF_8);
 			
-			Type type = new TypeToken<Map<String,Material>>(){}.getType();
-			materialMap = new Gson().fromJson(data, type);
+			JsonObject myJsonObject = new Gson().fromJson(data, JsonObject.class);
+			
+			materialMap = new HashMap();
+			
+			for (Map.Entry<String, JsonElement> entry : myJsonObject.entrySet()) {
+				try {
+					String aliase = entry.getKey();
+					String materialName = entry.getValue().getAsString();
+					
+					Material material = Material.getMaterial(materialName);
+					materialMap.put(aliase, material);
+				}catch (Exception e){
+					Skript.exception(e, "Failed to load Material from the aliase [" + entry.getKey() + "]");
+					e.printStackTrace();
+				}
+			}
+			
+			for (Material material : Material.values()) {
+				materialMap.put(material.name(), material);
+			}
+			
 		}
 		
 		return true;
