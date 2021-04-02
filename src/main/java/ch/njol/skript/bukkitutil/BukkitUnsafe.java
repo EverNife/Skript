@@ -138,10 +138,9 @@ public class BukkitUnsafe {
 		} else {
 			// If we have correct material map, prefer using it
 			if (preferMaterialMap) {
-				if (id.length() > 9) {
-					assert materialMap != null;
-					return materialMap.get(id.substring(10)); // Strip 'minecraft:' out
-				}
+				assert materialMap != null;
+				Material material = materialMap.get(id.contains("minecraft:") ? id.substring(10) : id); // Strip 'minecraft:' out
+				if (material != null) return material;
 			}
 			
 			// Otherwise, hacks
@@ -189,10 +188,11 @@ public class BukkitUnsafe {
 				}
 			}
 			
-			for (Material material : Material.values()) {
-				materialMap.put(material.name(), material);
-			}
-			
+		}
+		
+		for (Material value : Material.values()) {
+			materialMap.put(value.name().toLowerCase(), value);
+			materialMap.put(String.valueOf(value.getId()), value);
 		}
 		
 		return true;
