@@ -429,6 +429,13 @@ public abstract class Aliases {
 			
 		}
 		
+		// Load every single material as an aliase of itself
+		// Load every single id as an aliase of itself
+		for (Material material : Material.values()) {
+			parser.loadAlias(material.name().toLowerCase(), material.name());
+			parser.loadAlias("id_" + material.getId(), material.name());
+		}
+		
 		// Load everything from aliases folder (user aliases)
 		Path aliasesFolder = dataFolder.resolve("aliases");
 		if (Files.exists(aliasesFolder)) {
